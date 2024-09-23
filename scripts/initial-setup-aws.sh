@@ -1,20 +1,28 @@
 #!/bin/bash
 
+# Run this script once to setup the inital AWS infrastructure
+
+# Copy
+cp -f ../package*.json ../scripts/
+cp -rf ../server/ ../scripts/server
+cp -rf ../client ../scripts/client
+
 # Set variables
 REGION="us-west-1"
 CLUSTER_NAME="edp-cluster"
 SERVICE_NAME="edp-service"
 TASK_DEFINITION_NAME="edp-task"
-ECR_REPO_NAME="edp-repo"
+ECR_REPO_NAME="edp-people-picker"
 CONTAINER_NAME="edp-people-picker"
 IMAGE_TAG="latest"
 VPC_ID="vpc-044f3610b44a385a3"
 SUBNET_ID_1="subnet-0e572489e80cf116b"
 SECURITY_GROUP_ID="sg-01ce8ac1669674ad2"
+LOG_GROUP_NAME="/ecs/edp"
 
 # Create ECR repository
 echo "Creating ECR repository..."
-aws ecr create-repository --repository-name $ECR_REPO_NAME --region $REGION
+aws ecr create-repository --repository-name $ECR_REPO_NAME --region $REGION > /dev/null
 
 # Get ECR repository URI
 ECR_URI=$(aws ecr describe-repositories --repository-names $ECR_REPO_NAME --region $REGION --query 'repositories[0].repositoryUri' --output text)
@@ -35,7 +43,11 @@ docker push $ECR_URI:$IMAGE_TAG
 
 # Create ECS cluster
 echo "Creating ECS cluster..."
-aws ecs create-cluster --cluster-name $CLUSTER_NAME --region $REGION
+aws ecs create-cluster --cluster-name $CLUSTER_NAME --region $REGION > /dev/null
+
+# Create CloudWatch log group
+echo "Creating CloudWatch log group..."
+aws logs create-log-group --log-group-name $LOG_GROUP_NAME --region $REGION > /dev/null
 
 # Register ECS task definition
 echo "Registering ECS task definition..."
@@ -61,7 +73,7 @@ TASK_DEF_JSON=$(cat <<EOF
                 "retries": 3,
                 "command": [
                     "CMD-SHELL",
-                    "curl -f http://127.0.0.1:3000/api/socks/1/1 || exit 1"
+                    "curl -f http://127.0.0.1:3001/ || exit 1"
                 ],
                 "timeout": 5,
                 "interval": 30,
@@ -92,7 +104,7 @@ EOF
 )
 
 echo "$TASK_DEF_JSON" > task_definition.json
-aws ecs register-task-definition --cli-input-json file://task_definition.json --region $REGION
+aws ecs register-task-definition --cli-input-json file://task_definition.json --region $REGION > /dev/null
 
 # Create ECS service
 echo "Creating ECS service..."
@@ -102,7 +114,7 @@ aws ecs create-service \
     --task-definition $TASK_DEFINITION_NAME \
     --desired-count 1 \
     --launch-type FARGATE \
-    --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_ID_1,$SUBNET_ID_2],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}" \
-    --region $REGION
+    --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_ID_1],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}" \
+    --region $REGION > /dev/null
 
 echo "ECS service and task created successfully."
