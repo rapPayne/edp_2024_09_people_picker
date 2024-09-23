@@ -4,7 +4,7 @@
     "containerDefinitions": [
         {
             "name": "edp-people-picker",
-            "image": "397188165174.dkr.ecr.us-west-1.amazonaws.com/edp-repo:latest",
+            "image": "397188165174.dkr.ecr.us-west-1.amazonaws.com/edp-people-picker:latest",
             "cpu": 1024,
             "memory": 4096,
             "portMappings": [
@@ -19,7 +19,7 @@
                 "retries": 3,
                 "command": [
                     "CMD-SHELL",
-                    "curl -f http://127.0.0.1:3000/api/socks/1/1 || exit 1"
+                    "curl -f http://127.0.0.1:3001/ || exit 1"
                 ],
                 "timeout": 5,
                 "interval": 30,
