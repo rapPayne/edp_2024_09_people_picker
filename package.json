@@ -1,0 +1,16 @@
+{
+  "name": "people-picker",
+  "version": "0.0.1",
+  "description": "Picks a random person",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --watch server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Awesome EDP cohort",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
