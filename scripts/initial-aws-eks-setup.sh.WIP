@@ -1,0 +1,203 @@
+#!/bin/bash
+
+# Run this script once to set up the initial AWS infrastructure for EKS
+
+# Copy necessary files
+cp -f ../package*.json ../scripts/
+cp -rf ../server/ ../scripts/server
+cp -rf ../client ../scripts/client
+
+# Set variables
+REGION="us-west-1"
+CLUSTER_NAME="edp-eks-cluster"
+ECR_REPO_NAME="edp-people-picker"
+CONTAINER_NAME="edp-people-picker"
+
+# Use Git commit hash as IMAGE_TAG
+IMAGE_TAG=$(git rev-parse --short HEAD)
+
+# Create VPC
+echo "Creating VPC..."
+VPC_JSON=$(aws ec2 create-vpc --cidr-block 10.0.0.0/16 --region $REGION)
+VPC_ID=$(echo $VPC_JSON | jq -r '.Vpc.VpcId')
+echo "VPC ID: $VPC_ID"
+
+# Enable DNS support and hostnames
+aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-support "{\"Value\":true}" --region $REGION
+aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames "{\"Value\":true}" --region $REGION
+
+# Create Subnet
+echo "Creating Subnet..."
+SUBNET_JSON=$(aws ec2 create-subnet --vpc-id $VPC_ID --cidr-block 10.0.1.0/24 --availability-zone ${REGION}a --region $REGION)
+SUBNET_ID=$(echo $SUBNET_JSON | jq -r '.Subnet.SubnetId')
+echo "Subnet ID: $SUBNET_ID"
+
+# Create Internet Gateway
+echo "Creating Internet Gateway..."
+IGW_JSON=$(aws ec2 create-internet-gateway --region $REGION)
+IGW_ID=$(echo $IGW_JSON | jq -r '.InternetGateway.InternetGatewayId')
+echo "Internet Gateway ID: $IGW_ID"
+
+# Attach Internet Gateway to VPC
+echo "Attaching Internet Gateway to VPC..."
+aws ec2 attach-internet-gateway --internet-gateway-id $IGW_ID --vpc-id $VPC_ID --region $REGION
+
+# Create Route Table
+echo "Creating Route Table..."
+ROUTE_TABLE_JSON=$(aws ec2 create-route-table --vpc-id $VPC_ID --region $REGION)
+ROUTE_TABLE_ID=$(echo $ROUTE_TABLE_JSON | jq -r '.RouteTable.RouteTableId')
+echo "Route Table ID: $ROUTE_TABLE_ID"
+
+# Create Route to Internet Gateway
+echo "Creating route to Internet Gateway..."
+aws ec2 create-route --route-table-id $ROUTE_TABLE_ID --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --region $REGION
+
+# Associate Route Table with Subnet
+echo "Associating Route Table with Subnet..."
+aws ec2 associate-route-table --route-table-id $ROUTE_TABLE_ID --subnet-id $SUBNET_ID --region $REGION
+
+# Modify Subnet to assign public IPs
+echo "Modifying Subnet to assign public IPs..."
+aws ec2 modify-subnet-attribute --subnet-id $SUBNET_ID --map-public-ip-on-launch --region $REGION
+
+# Create Security Group
+echo "Creating Security Group..."
+SECURITY_GROUP_JSON=$(aws ec2 create-security-group --group-name edp-sg --description "EDP Security Group" --vpc-id $VPC_ID --region $REGION)
+SECURITY_GROUP_ID=$(echo $SECURITY_GROUP_JSON | jq -r '.GroupId')
+echo "Security Group ID: $SECURITY_GROUP_ID"
+
+# Authorize inbound traffic on port 3001
+echo "Authorizing inbound traffic on port 3001..."
+aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 3001 --cidr 0.0.0.0/0 --region $REGION
+
+# Create ECR repository
+echo "Creating ECR repository..."
+aws ecr create-repository --repository-name $ECR_REPO_NAME --region $REGION > /dev/null
+
+# Get ECR repository URI
+ECR_URI=$(aws ecr describe-repositories --repository-names $ECR_REPO_NAME --region $REGION --query 'repositories[0].repositoryUri' --output text)
+echo "ECR Repository URI: $ECR_URI"
+
+# Log in to ECR
+echo "Logging in to ECR..."
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_URI
+
+# Build Docker image
+echo "Building Docker image..."
+docker build -t $CONTAINER_NAME .
+
+# Tag and push Docker image to ECR
+echo "Tagging and pushing Docker image to ECR..."
+docker tag $CONTAINER_NAME:latest $ECR_URI:$IMAGE_TAG
+docker push $ECR_URI:$IMAGE_TAG
+
+# Create IAM role for EKS
+echo "Creating IAM role for EKS cluster..."
+aws iam create-role --role-name edp-eks-role --assume-role-policy-document file://<(echo '{
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Principal": {"Service": "eks.amazonaws.com"},
+        "Action": "sts:AssumeRole"
+    }]
+}') > /dev/null
+
+# Attach policies to the role
+aws iam attach-role-policy --role-name edp-eks-role --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+aws iam attach-role-policy --role-name edp-eks-role --policy-arn arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+
+# Create EKS cluster
+echo "Creating EKS cluster (this may take several minutes)..."
+aws eks create-cluster \
+    --name $CLUSTER_NAME \
+    --kubernetes-version 1.27 \
+    --role-arn arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/edp-eks-role \
+    --resources-vpc-config subnetIds=$SUBNET_ID,securityGroupIds=$SECURITY_GROUP_ID \
+    --region $REGION
+
+# Wait for EKS cluster to become ACTIVE
+echo "Waiting for EKS cluster to become ACTIVE..."
+aws eks wait cluster-active --name $CLUSTER_NAME --region $REGION
+
+# Update kubeconfig
+echo "Updating kubeconfig..."
+aws eks update-kubeconfig --name $CLUSTER_NAME --region $REGION
+
+# Create IAM role for worker nodes
+echo "Creating IAM role for worker nodes..."
+aws iam create-role --role-name edp-eks-node-role --assume-role-policy-document file://<(echo '{
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Principal": {"Service": "ec2.amazonaws.com"},
+        "Action": "sts:AssumeRole"
+    }]
+}') > /dev/null
+
+# Attach policies to the node role
+aws iam attach-role-policy --role-name edp-eks-node-role --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+aws iam attach-role-policy --role-name edp-eks-node-role --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+aws iam attach-role-policy --role-name edp-eks-node-role --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+# Create Node Group
+echo "Creating EKS node group..."
+aws eks create-nodegroup \
+    --cluster-name $CLUSTER_NAME \
+    --nodegroup-name edp-node-group \
+    --scaling-config minSize=1,maxSize=2,desiredSize=1 \
+    --disk-size 20 \
+    --subnets $SUBNET_ID \
+    --instance-types t3.medium \
+    --node-role arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/edp-eks-node-role \
+    --region $REGION
+
+# Wait for Node Group to become ACTIVE
+echo "Waiting for EKS node group to become ACTIVE..."
+aws eks wait nodegroup-active --cluster-name $CLUSTER_NAME --nodegroup-name edp-node-group --region $REGION
+
+# Deploy application to EKS cluster
+echo "Deploying application to EKS cluster..."
+
+# Create Kubernetes deployment YAML
+cat <<EOF > deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edp-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: edp-app
+  template:
+    metadata:
+      labels:
+        app: edp-app
+    spec:
+      containers:
+      - name: $CONTAINER_NAME
+        image: $ECR_URI:$IMAGE_TAG
+        ports:
+        - containerPort: 3001
+EOF
+
+# Create Kubernetes service YAML
+cat <<EOF > service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: edp-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3001
+    targetPort: 3001
+  selector:
+    app: edp-app
+EOF
+
+# Apply Kubernetes deployment and service
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+
+echo "Application deployed successfully. You can check the service status with 'kubectl get services'."
