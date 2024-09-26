@@ -1,8 +1,11 @@
 import express from 'express';
-import { createPerson, getAllPeople, getPerson } from './repository.js';
+import cors from 'cors';
+import { createPerson, deletePerson, getAllPeople, getPerson } from './repository.js';
 
 const app = express();
 const port = 3001;
+
+app.use(cors());
 
 // Read all the people
 app.get('/api/people', (req, res) => {
@@ -15,6 +18,11 @@ app.get('/api/people', (req, res) => {
 })
 
 // Read one person by id
+app.get('/api/people/:id', (req, res) => {
+  const personId = req.params.id;
+  const thePerson = getPerson(+personId);
+  res.send(thePerson);
+})
 //console.log(getPerson(5));
 
 // Add a new person
@@ -24,7 +32,16 @@ app.get('/api/people', (req, res) => {
 // updatePersonCell(12, "(212) 867-5309" );
 
 // Delete a person
-// deletePerson(100)
+app.delete('/api/people/:id', (req, res) => {
+  const personId = req.params.id;
+  try {
+    deletePerson(+personId);
+    console.log(`person ${personId} was deleted.`);
+    res.send(`person ${personId} was deleted.`);
+  } catch (ex) {
+    res.status(500).send(`Error deleting person ${personId}`);
+  }
+});
 
 app.use(express.static('client'));
 
