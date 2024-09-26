@@ -1,0 +1,19 @@
+.PeoplePicker {
+
+  .chosenPeople,
+  .unchosenPeople {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .chosenPerson {
+    width: 300px;
+    margin: 0px auto;
+  }
+
+  .buttonRow {
+    display: flex;
+    justify-content: space-between;
+  }
+}
