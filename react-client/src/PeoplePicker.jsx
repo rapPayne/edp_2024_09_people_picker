@@ -7,17 +7,25 @@ export function PeoplePicker() {
   const [unchosenPeople, setUnchosenPeople] = useState([])
   const [chosenPeople, setChosenPeople] = useState([])
   useEffect(() => {
+    fetchPeople();
+  }, []);
+
+  function fetchPeople() {
     fetch('http://localhost:3001/api/people')
       .then(res => res.json())
-      .then(ppl => setUnchosenPeople(ppl))
-  }, [])
+      .then(ppl => {
+        setUnchosenPeople(ppl);
+        setChosenPeople([]);
+        setChosenPerson(null);
+      });
+  }
   return (
     <div className="PeoplePicker">
       <h1>People Picker</h1>
       <p className="alert info">Hit the choose button below to select a random person.</p>
       <div className="buttonRow">
         <button onClick={() => chooseRandomPerson()}>Choose</button>
-        <button className="link">Reset</button>
+        <button className="link" onClick={() => resetPeople()}>Reset</button>
       </div>
       <h2>Chosen Person</h2>
       <section className="chosenPerson">
@@ -42,6 +50,9 @@ export function PeoplePicker() {
     setUnchosenPeople(unchosenPeople.filter(p => p !== person));
     setChosenPeople([...chosenPeople, person])
     console.log("chosen person is", person)
+  }
+  function resetPeople() {
+    fetchPeople();  
   }
 }
 
