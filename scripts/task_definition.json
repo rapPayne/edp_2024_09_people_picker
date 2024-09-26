@@ -4,7 +4,7 @@
     "containerDefinitions": [
         {
             "name": "edp-people-picker",
-            "image": "397188165174.dkr.ecr.us-west-1.amazonaws.com/edp-repo:latest",
+            "image": ":latest",
             "cpu": 1024,
             "memory": 4096,
             "portMappings": [
