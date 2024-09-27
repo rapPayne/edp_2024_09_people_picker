@@ -45,7 +45,7 @@ export function PeoplePicker() {
   )
 
   function chooseRandomPerson() {
-    if (unchosenPeople === 0) {
+    if (unchosenPeople.length === 0) {
       resetPeople();
       return;
     }
