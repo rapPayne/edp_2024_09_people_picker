@@ -1,10 +1,10 @@
 #person-wrapper {
     box-shadow:  "5px 5px 10px var(--dark1)";
-    display: flex;
+    /* display: flex;
     flex-basis: "300px";
     flex-shrink: 1;
     flex-grow: 1;
-    flex-direction: column;
+    flex-direction: column; */
     border-radius: 25px;
     border: 2px solid grey;
     width: 200px;

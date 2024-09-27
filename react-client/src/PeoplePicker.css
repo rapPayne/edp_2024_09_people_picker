@@ -2,13 +2,13 @@
 
   .chosenPeople,
   .unchosenPeople {
-display: flex; 
+/* display: flex; 
 flex-direction: row;
-flex-wrap: wrap;
+flex-wrap: wrap; */
 
-    /* display: grid;
+    display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px; */
+    gap: 10px;
   }
 
   .chosenPerson {
@@ -17,17 +17,18 @@ flex-wrap: wrap;
   }
 
   .buttonRow {
-    display: flex;
-    justify-content:space-between;
+    /* display: flex;
+    justify-content:space-between; */
     padding-left: 25px; 
     padding-right: 25px; 
 
   }
 }
 
-#people-picker-title { 
+/*Removed to avoid flex */
+/* #people-picker-title { 
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-}
+} */
