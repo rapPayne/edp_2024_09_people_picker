@@ -21,7 +21,9 @@ export function PeoplePicker() {
   }
   return (
     <div className="PeoplePicker">
+      <div id="people-picker-title">
       <h1>People Picker</h1>
+      </div>
       
      
       <h2>Chosen Person</h2>
