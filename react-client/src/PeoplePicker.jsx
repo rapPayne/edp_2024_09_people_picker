@@ -22,12 +22,14 @@ export function PeoplePicker() {
   return (
     <div className="PeoplePicker">
       <h1>People Picker</h1>
-      <p className="alert info">Hit the choose button below to select a random person.</p>
+      
+     
+      <h2>Chosen Person</h2>
+      {chosenPerson ? <></> : <p className="alert info">Hit the choose button to select a random person</p>}
       <div className="buttonRow">
         <button onClick={() => chooseRandomPerson()}>Choose</button>
         <button className="link" onClick={() => resetPeople()}>Reset</button>
       </div>
-      <h2>Chosen Person</h2>
       <section className="chosenPerson">
         {chosenPerson ? <Person person={chosenPerson} /> : <></>}
       </section>
