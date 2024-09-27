@@ -2,7 +2,7 @@
 import fs from 'fs';
 
 const peopleFile = './server/people.json';
-const people = JSON.parse(fs.readFileSync(peopleFile))
+let people = JSON.parse(fs.readFileSync(peopleFile))
 
 export function getAllPeople() {
   return people;

@@ -1,0 +1,50 @@
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  --dark1: darkblue;
+  /* --hue2: calc(hue(--dark1) + 120deg);
+  --hue3: calc(hue(--dark1) + 240deg);
+  --dark2: hsl(var(--hue2), saturation(--dark1), lightness(--dark1)); */
+  --dark2: black;
+  --lite1: white;
+  --lite2: lightblue;
+  --danger: red;
+  --danger-alt: pink;
+  --info: var(--dark2);
+  --info-alt: var(--lite1);
+  color: var(--dark1);
+  background-color: var(--lite1);
+}
+
+body {
+  margin: 0;
+}
+
+.alert {
+  border: 2px solid var(--dark1);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.danger {
+  color: var(--danger);
+  background-color: var(--danger-alt);
+  border-color: var(--danger);
+}
+
+button {
+  padding: 10px;
+  border: 2px solid var(--dark2);
+  border-radius: 5px;
+  color: var(--lite2);
+  background-color: var(--dark2);
+}
+
+.link {
+  appearance: none;
+  border: none;
+  background-color: transparent;
+  color: var(--dark1);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
