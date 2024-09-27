@@ -1,0 +1,197 @@
+#!/bin/bash
+
+# Run this script to remove all the AWS resources created by the setup script
+
+# Set variables
+REGION="us-west-1"
+NAME="edp"
+CLUSTER_NAME="$NAME-cluster"
+SERVICE_NAME="$NAME-service"
+TASK_DEFINITION_NAME="$NAME-task"
+ECR_REPO_NAME="$NAME-people-picker"
+LOG_GROUP_NAME="/ecs/$NAME"
+
+# Retrieve VPC ID
+echo "Retrieving VPC ID..."
+VPC_ID=$(aws ec2 describe-vpcs \
+    --filters "Name=cidr,Values=10.0.0.0/16" \
+    --region $REGION \
+    --query 'Vpcs[0].VpcId' \
+    --output text)
+echo "VPC ID: $VPC_ID"
+
+# Retrieve Subnet ID
+echo "Retrieving Subnet ID..."
+SUBNET_ID=$(aws ec2 describe-subnets \
+    --filters "Name=vpc-id,Values=$VPC_ID" "Name=cidr-block,Values=10.0.1.0/24" \
+    --region $REGION \
+    --query 'Subnets[0].SubnetId' \
+    --output text)
+echo "Subnet ID: $SUBNET_ID"
+
+# Retrieve Internet Gateway ID
+echo "Retrieving Internet Gateway ID..."
+IGW_ID=$(aws ec2 describe-internet-gateways \
+    --filters "Name=attachment.vpc-id,Values=$VPC_ID" \
+    --region $REGION \
+    --query 'InternetGateways[0].InternetGatewayId' \
+    --output text)
+echo "Internet Gateway ID: $IGW_ID"
+
+# Retrieve Route Table ID
+echo "Retrieving Route Table ID..."
+ROUTE_TABLE_ID=$(aws ec2 describe-route-tables \
+    --filters "Name=vpc-id,Values=$VPC_ID" \
+    --region $REGION \
+    --query 'RouteTables[0].RouteTableId' \
+    --output text)
+echo "Route Table ID: $ROUTE_TABLE_ID"
+
+# Retrieve Security Group ID
+echo "Retrieving Security Group ID..."
+SECURITY_GROUP_ID=$(aws ec2 describe-security-groups \
+    --filters "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=$NAME-sg" \
+    --region $REGION \
+    --query 'SecurityGroups[0].GroupId' \
+    --output text)
+echo "Security Group ID: $SECURITY_GROUP_ID"
+
+# Delete ECS service
+echo "Updating ECS service desired count to 0..."
+aws ecs update-service \
+    --cluster $CLUSTER_NAME \
+    --service $SERVICE_NAME \
+    --desired-count 0 \
+    --region $REGION > /dev/null
+
+echo "Waiting for ECS service to stabilize..."
+aws ecs wait services-stable \
+    --cluster $CLUSTER_NAME \
+    --services $SERVICE_NAME \
+    --region $REGION
+
+echo "Deleting ECS service..."
+aws ecs delete-service \
+    --cluster $CLUSTER_NAME \
+    --service $SERVICE_NAME \
+    --force \
+    --region $REGION > /dev/null
+
+# Deregister task definitions
+echo "Listing task definition ARNs..."
+TASK_DEFINITION_ARNS=$(aws ecs list-task-definitions \
+    --family-prefix $TASK_DEFINITION_NAME \
+    --region $REGION \
+    --query 'taskDefinitionArns' \
+    --output text)
+
+echo "Deregistering task definitions..."
+for TASK_DEF_ARN in $TASK_DEFINITION_ARNS; do
+    echo "Deregistering $TASK_DEF_ARN..."
+    aws ecs deregister-task-definition \
+        --task-definition $TASK_DEF_ARN \
+        --region $REGION > /dev/null
+done
+
+# Delete ECS cluster
+echo "Deleting ECS cluster..."
+aws ecs delete-cluster \
+    --cluster $CLUSTER_NAME \
+    --region $REGION > /dev/null
+
+# Delete images in ECR repository
+echo "Listing images in ECR repository..."
+IMAGE_IDS=$(aws ecr list-images \
+    --repository-name $ECR_REPO_NAME \
+    --region $REGION \
+    --query 'imageIds[*]' \
+    --output json)
+
+if [[ $IMAGE_IDS != "[]" ]]; then
+    echo "Deleting images from ECR repository..."
+    aws ecr batch-delete-image \
+        --repository-name $ECR_REPO_NAME \
+        --image-ids "$IMAGE_IDS" \
+        --region $REGION > /dev/null
+else
+    echo "No images to delete in ECR repository."
+fi
+
+# Delete ECR repository
+echo "Deleting ECR repository..."
+aws ecr delete-repository \
+    --repository-name $ECR_REPO_NAME \
+    --region $REGION \
+    --force > /dev/null
+
+# Delete CloudWatch log group
+echo "Deleting CloudWatch log group..."
+aws logs delete-log-group \
+    --log-group-name $LOG_GROUP_NAME \
+    --region $REGION
+
+# Revoke ingress rule in Security Group
+echo "Revoking ingress rules from Security Group..."
+aws ec2 revoke-security-group-ingress \
+    --group-id $SECURITY_GROUP_ID \
+    --protocol tcp \
+    --port 3001 \
+    --cidr 0.0.0.0/0 \
+    --region $REGION > /dev/null
+
+# Delete Security Group
+echo "Deleting Security Group..."
+aws ec2 delete-security-group \
+    --group-id $SECURITY_GROUP_ID \
+    --region $REGION
+
+# Disassociate Route Table from Subnet
+echo "Disassociating Route Table from Subnet..."
+ASSOCIATION_ID=$(aws ec2 describe-route-tables \
+    --route-table-ids $ROUTE_TABLE_ID \
+    --query 'RouteTables[0].Associations[0].RouteTableAssociationId' \
+    --output text \
+    --region $REGION)
+aws ec2 disassociate-route-table \
+    --association-id $ASSOCIATION_ID \
+    --region $REGION
+
+# Delete Route to Internet Gateway
+echo "Deleting route to Internet Gateway..."
+aws ec2 delete-route \
+    --route-table-id $ROUTE_TABLE_ID \
+    --destination-cidr-block 0.0.0.0/0 \
+    --region $REGION
+
+# Delete Route Table
+echo "Deleting Route Table..."
+aws ec2 delete-route-table \
+    --route-table-id $ROUTE_TABLE_ID \
+    --region $REGION
+
+# Detach Internet Gateway from VPC
+echo "Detaching Internet Gateway from VPC..."
+aws ec2 detach-internet-gateway \
+    --internet-gateway-id $IGW_ID \
+    --vpc-id $VPC_ID \
+    --region $REGION
+
+# Delete Internet Gateway
+echo "Deleting Internet Gateway..."
+aws ec2 delete-internet-gateway \
+    --internet-gateway-id $IGW_ID \
+    --region $REGION
+
+# Delete Subnet
+echo "Deleting Subnet..."
+aws ec2 delete-subnet \
+    --subnet-id $SUBNET_ID \
+    --region $REGION
+
+# Delete VPC
+echo "Deleting VPC..."
+aws ec2 delete-vpc \
+    --vpc-id $VPC_ID \
+    --region $REGION
+
+echo "All AWS resources created by the setup script have been deleted."

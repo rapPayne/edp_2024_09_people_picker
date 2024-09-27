@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Run this script once to set up the initial Azure infrastructure
+
+# Copy necessary files
+cp -f ../package*.json ../scripts/
+cp -rf ../server/ ../scripts/server
+cp -rf ../client ../scripts/client
+
+# Set variables
+RESOURCE_GROUP="edp-resource-group"
+LOCATION="westus"
+ACR_NAME="edpacr$RANDOM"  # ACR names must be globally unique
+CONTAINER_NAME="edp-people-picker"
+VNET_NAME="edp-vnet"
+SUBNET_NAME="edp-subnet"
+NSG_NAME="edp-nsg"
+LOG_ANALYTICS_WORKSPACE="edp-log-workspace"
+
+# Use Git commit hash as IMAGE_TAG
+IMAGE_TAG=$(git rev-parse --short HEAD)
+
+# Create Resource Group
+echo "Creating Resource Group..."
+az group create --name $RESOURCE_GROUP --location $LOCATION
+
+# Create Azure Container Registry (ACR)
+echo "Creating Azure Container Registry..."
+az acr create --resource-group $RESOURCE_GROUP --name $ACR_NAME --sku Basic
+
+# Log in to ACR
+echo "Logging in to ACR..."
+az acr login --name $ACR_NAME
+
+# Get ACR Login Server
+ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --resource-group $RESOURCE_GROUP --query loginServer --output tsv)
+echo "ACR Login Server: $ACR_LOGIN_SERVER"
+
+# Build and push Docker image to ACR
+echo "Building and pushing Docker image to ACR..."
+docker build -t $CONTAINER_NAME .
+docker tag $CONTAINER_NAME:latest $ACR_LOGIN_SERVER/$CONTAINER_NAME:$IMAGE_TAG
+docker push $ACR_LOGIN_SERVER/$CONTAINER_NAME:$IMAGE_TAG
+
+# Create Virtual Network
+echo "Creating Virtual Network..."
+az network vnet create \
+    --resource-group $RESOURCE_GROUP \
+    --name $VNET_NAME \
+    --address-prefixes 10.0.0.0/16 \
+    --subnet-name $SUBNET_NAME \
+    --subnet-prefixes 10.0.1.0/24
+
+# Create Network Security Group
+echo "Creating Network Security Group..."
+az network nsg create \
+    --resource-group $RESOURCE_GROUP \
+    --name $NSG_NAME
+
+# Create NSG rule to allow inbound traffic on port 3001
+echo "Creating NSG rule for port 3001..."
+az network nsg rule create \
+    --resource-group $RESOURCE_GROUP \
+    --nsg-name $NSG_NAME \
+    --name Allow-Port-3001 \
+    --protocol tcp \
+    --direction inbound \
+    --priority 1000 \
+    --source-address-prefixes '*' \
+    --source-port-ranges '*' \
+    --destination-address-prefixes '*' \
+    --destination-port-ranges 3001 \
+    --access allow
+
+# Associate NSG with Subnet
+echo "Associating NSG with Subnet..."
+az network vnet subnet update \
+    --resource-group $RESOURCE_GROUP \
+    --vnet-name $VNET_NAME \
+    --name $SUBNET_NAME \
+    --network-security-group $NSG_NAME
+
+# Create Log Analytics Workspace
+echo "Creating Log Analytics Workspace..."
+az monitor log-analytics workspace create \
+    --resource-group $RESOURCE_GROUP \
+    --workspace-name $LOG_ANALYTICS_WORKSPACE
+
+# Get Workspace ID and Key
+WORKSPACE_ID=$(az monitor log-analytics workspace show --resource-group $RESOURCE_GROUP --workspace-name $LOG_ANALYTICS_WORKSPACE --query customerId -o tsv)
+WORKSPACE_KEY=$(az monitor log-analytics workspace get-shared-keys --resource-group $RESOURCE_GROUP --workspace-name $LOG_ANALYTICS_WORKSPACE --query primarySharedKey -o tsv)
+
+# Create Container Instance with VNet integration
+echo "Creating Azure Container Instance..."
+az container create \
+    --resource-group $RESOURCE_GROUP \
+    --name $CONTAINER_NAME \
+    --image $ACR_LOGIN_SERVER/$CONTAINER_NAME:$IMAGE_TAG \
+    --vnet $VNET_NAME \
+    --subnet $SUBNET_NAME \
+    --ports 3001 \
+    --dns-name-label "$CONTAINER_NAME-$RANDOM" \
+    --registry-login-server $ACR_LOGIN_SERVER \
+    --registry-username $(az acr credential show --name $ACR_NAME --query username -o tsv) \
+    --registry-password $(az acr credential show --name $ACR_NAME --query passwords[0].value -o tsv) \
+    --log-analytics-workspace $WORKSPACE_ID \
+    --log-analytics-workspace-key $WORKSPACE_KEY \
+    --environment-variables ENVIRONMENT=Production
+
+echo "Azure Container Instance created successfully."

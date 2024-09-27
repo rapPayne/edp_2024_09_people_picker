@@ -1,2 +1,6 @@
-
 /node_modules/
+/scripts/client/
+/scripts/server/
+/scripts/package*.json
+/scripts/people.json
+/scripts/repository.js
