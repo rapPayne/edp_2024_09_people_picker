@@ -18,4 +18,10 @@
       }
     }
   }
+
+  /* For NavLink's "current" location */
+  .active {
+    background-color: Red;
+    font-weight: 700;
+  }
 }
