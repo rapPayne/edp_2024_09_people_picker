@@ -29,7 +29,7 @@ export function PeoplePicker() {
       </div>
       <h2>Chosen Person</h2>
       <section className="chosenPerson">
-        <Person person={chosenPerson} />
+        {chosenPerson ? <Person person={chosenPerson} /> : <></>}
       </section>
       <h2>Unchosen People</h2>
       <section className="unchosenPeople">
