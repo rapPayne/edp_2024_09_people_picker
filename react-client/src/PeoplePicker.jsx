@@ -45,6 +45,10 @@ export function PeoplePicker() {
   )
 
   function chooseRandomPerson() {
+    if (unchosenPeople === 0) {
+      resetPeople();
+      return;
+    }
     let person = unchosenPeople[Math.floor(Math.random() * unchosenPeople.length)];
     setChosenPerson(person);
     setUnchosenPeople(unchosenPeople.filter(p => p !== person));
@@ -52,7 +56,6 @@ export function PeoplePicker() {
     console.log("chosen person is", person)
   }
   function resetPeople() {
-    fetchPeople();  
+    fetchPeople();
   }
 }
-
