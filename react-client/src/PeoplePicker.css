@@ -2,33 +2,21 @@
 
   .chosenPeople,
   .unchosenPeople {
-/* display: flex; 
-flex-direction: row;
-flex-wrap: wrap; */
-
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 10px;
   }
 
   .chosenPerson {
-    width: 300px;
+    max-width: 300px;
     margin: 0px auto;
   }
 
   .buttonRow {
     /* display: flex;
     justify-content:space-between; */
-    padding-left: 25px; 
-    padding-right: 25px; 
+    padding-left: 25px;
+    padding-right: 25px;
 
   }
 }
-
-/*Removed to avoid flex */
-/* #people-picker-title { 
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-} */
