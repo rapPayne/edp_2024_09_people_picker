@@ -1,6 +1,6 @@
 import { PeoplePicker } from './PeoplePicker'
 import { AboutUs, ContactUs, Login } from './Other';
-import { BrowserRouter, Link, Navigate, NavLink, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, NavLink, Route, Routes } from 'react-router-dom';
 import './index.css';
 import './App.css';
 
