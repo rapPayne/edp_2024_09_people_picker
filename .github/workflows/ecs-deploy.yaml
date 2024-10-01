@@ -24,6 +24,9 @@ jobs:
 
       - name: Install NPM dependencies
         run: cd react-client && npm install
+      
+      - name: Build
+        run: cd react-client && npm run build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
