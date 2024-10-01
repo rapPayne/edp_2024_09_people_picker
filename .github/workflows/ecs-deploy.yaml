@@ -33,18 +33,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Check location
-        run: ${PWD}
-
       - name: Build, tag, and push Docker image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: edp-people-picker  # Replace with your ECR repository name
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          cd scripts
+          # Copy necessary files
+          cp -f ./package*.json scripts/
+          cp -rf ./server/ scripts/server
+          cp -rf ./client scripts/client
           # Build the Docker image
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./scripts/.
           # Push the Docker image to ECR
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
