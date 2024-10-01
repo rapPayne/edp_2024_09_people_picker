@@ -164,7 +164,6 @@ aws ec2 delete-route \
     --region $REGION
 
 # Delete Route Table
-echo "Deleting Route Table..."
 aws ec2 delete-route-table \
     --route-table-id $ROUTE_TABLE_ID \
     --region $REGION

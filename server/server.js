@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { createPerson, deletePerson, getAllPeople, getPerson } from './repository.js';
+import { createPerson, deletePerson, getAllPeople, getPerson } from './repository-ddb.js';
 
 const app = express();
 const port = 3001;
@@ -8,9 +8,9 @@ const port = 3001;
 app.use(cors());
 
 // Read all the people
-app.get('/api/people', (req, res) => {
+app.get('/api/people', async (req, res) => {
   try {
-    const people = getAllPeople();
+    const people = await getAllPeople();
     res.send(people);
   } catch (e) {
     res.status(501).send({ err: e.message });
@@ -18,9 +18,9 @@ app.get('/api/people', (req, res) => {
 })
 
 // Read one person by id
-app.get('/api/people/:id', (req, res) => {
+app.get('/api/people/:id', async (req, res) => {
   const personId = req.params.id;
-  const thePerson = getPerson(+personId);
+  const thePerson = await getPerson(+personId);
   res.send(thePerson);
 })
 //console.log(getPerson(5));
@@ -32,10 +32,10 @@ app.get('/api/people/:id', (req, res) => {
 // updatePersonCell(12, "(212) 867-5309" );
 
 // Delete a person
-app.delete('/api/people/:id', (req, res) => {
+app.delete('/api/people/:id', async (req, res) => {
   const personId = req.params.id;
   try {
-    deletePerson(+personId);
+    await deletePerson(+personId);
     console.log(`person ${personId} was deleted.`);
     res.send(`person ${personId} was deleted.`);
   } catch (ex) {

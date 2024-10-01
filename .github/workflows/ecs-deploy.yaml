@@ -1,0 +1,76 @@
+# .github/workflows/ecs-deploy.yml
+
+name: ECS Deploy1
+
+on:
+  # workflow_dispatch:
+  push:
+    branches:
+      - main  # Change this if you want to trigger on different branches
+
+jobs:
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'  # Use the Node.js version your project requires
+
+      - name: Install NPM dependencies
+        run: cd react-client && npm install
+      
+      - name: Build
+        run: cd react-client && npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1  # Replace with your AWS region if different
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push Docker image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: edp-people-picker  # Replace with your ECR repository name
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Copy necessary files
+          cp -f ./package*.json scripts/
+          cp -rf ./server/ scripts/server
+          cp -rf ./react-client/dist scripts/client
+          # Build the Docker image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./scripts/.
+          # Push the Docker image to ECR
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Update ECS service with new task definition
+        env:
+          CLUSTER_NAME: edp-cluster  # Replace with your ECS cluster name
+          SERVICE_NAME: edp-service  # Replace with your ECS service name
+          TASK_DEFINITION_NAME: edp-task  # Replace with your task definition family name
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: edp-people-picker  # Replace with your ECR repository name
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Fetch the current task definition
+          CURRENT_TASK_DEFINITION_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION_NAME)
+
+          # Update the task definition with the new image
+          NEW_TASK_DEFINITION=$(echo $CURRENT_TASK_DEFINITION_JSON | jq --arg IMAGE "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" '.taskDefinition | .containerDefinitions[0].image=$IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+
+          # Register the new task definition
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
+
+          # Update the ECS service to use the new task definition
+          aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --task-definition $NEW_TASK_DEF_ARN

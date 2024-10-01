@@ -14,7 +14,7 @@ export function PeoplePicker() {
   // useCallback allows the component to remember fetchPeople between renders
   // thereby obviating the need to re-create fetchPeople on every rerender.
   const fetchPeople = useCallback(() => {
-    fetch('http://localhost:3001/api/people')
+    fetch('/api/people')
       .then(res => res.json())
       .then(ppl => {
         setUnchosenPeople(ppl);
