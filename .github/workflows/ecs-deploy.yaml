@@ -40,7 +40,9 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Copy files
+          pwd
           cd scripts
+          pwd
           cp -f "../package*.json" ../scripts/
           cp -rf ../server/ ../scripts/server
           cp -rf ../client ../scripts/client
