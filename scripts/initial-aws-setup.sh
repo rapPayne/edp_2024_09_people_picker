@@ -87,6 +87,7 @@ aws ecr create-repository --repository-name $ECR_REPO_NAME --region $REGION > /d
 ECR_URI=$(aws ecr describe-repositories --repository-names $ECR_REPO_NAME --region $REGION --query 'repositories[0].repositoryUri' --output text)
 echo "ECR Repository URI: $ECR_URI"
 
+<<<<<<< HEAD
 # Create DynamoDB table
 echo "Creating DynamoDB table 'people'..."
 aws dynamodb create-table \
@@ -149,6 +150,8 @@ DYNAMODB_POLICY_ARN=$(aws iam create-policy --policy-name ecsTaskDynamoDBPolicy 
 echo "Attaching IAM policy to role..."
 aws iam attach-role-policy --role-name ecsTaskRole --policy-arn $DYNAMODB_POLICY_ARN --region $REGION
 
+=======
+>>>>>>> b6075e01a1a0d654e5c5d109dcacace6f9267328
 # Log in to ECR
 echo "Logging in to ECR..."
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_URI
@@ -175,7 +178,10 @@ echo "Registering ECS task definition..."
 TASK_DEF_JSON=$(cat <<EOF
 {
     "family": "$TASK_DEFINITION_NAME",
+<<<<<<< HEAD
     "taskRoleArn": "arn:aws:iam::$ACCOUNT_ID:role/ecsTaskRole",
+=======
+>>>>>>> b6075e01a1a0d654e5c5d109dcacace6f9267328
     "executionRoleArn": "arn:aws:iam::$ACCOUNT_ID:role/ecsTaskExecutionRole",
     "containerDefinitions": [
         {
