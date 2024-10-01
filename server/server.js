@@ -32,10 +32,10 @@ app.get('/api/people/:id', async (req, res) => {
 // updatePersonCell(12, "(212) 867-5309" );
 
 // Delete a person
-app.delete('/api/people/:id', (req, res) => {
+app.delete('/api/people/:id', async (req, res) => {
   const personId = req.params.id;
   try {
-    deletePerson(+personId);
+    await deletePerson(+personId);
     console.log(`person ${personId} was deleted.`);
     res.send(`person ${personId} was deleted.`);
   } catch (ex) {
