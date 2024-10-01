@@ -34,11 +34,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Check location
-        run: |
-            # Print current dir
-            pwd
-            cd scripts
-            pwd
+        run: ${PWD}
 
       - name: Build, tag, and push Docker image to ECR
         env:
