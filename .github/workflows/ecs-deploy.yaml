@@ -3,10 +3,10 @@
 name: ECS Deploy1
 
 on:
-  workflow_dispatch:
-#   push:
-#     branches:
-#       - main  # Change this if you want to trigger on different branches
+  # workflow_dispatch:
+  push:
+    branches:
+      - main  # Change this if you want to trigger on different branches
 
 jobs:
   deploy:
@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'  # Use the Node.js version your project requires
-          
+
       - name: Install NPM dependencies
         run: cd react-client && npm install
 
