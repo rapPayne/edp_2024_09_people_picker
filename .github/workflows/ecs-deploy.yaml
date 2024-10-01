@@ -41,7 +41,7 @@ jobs:
         run: |
           # Copy files
           cd scripts
-          cp -f ../package*.json ../scripts/
+          cp -f "../package*.json" ../scripts/
           cp -rf ../server/ ../scripts/server
           cp -rf ../client ../scripts/client
           # Build the Docker image
