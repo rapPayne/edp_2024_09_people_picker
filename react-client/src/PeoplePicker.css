@@ -8,12 +8,15 @@
   }
 
   .chosenPerson {
-    width: 300px;
+    max-width: 300px;
     margin: 0px auto;
   }
 
   .buttonRow {
-    display: flex;
-    justify-content: space-between;
+    /* display: flex;
+    justify-content:space-between; */
+    padding-left: 25px;
+    padding-right: 25px;
+
   }
 }
