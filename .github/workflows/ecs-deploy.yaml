@@ -21,6 +21,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'  # Use the Node.js version your project requires
+          
+      - name: Install NPM dependencies
+        run: cd react-client && npm install
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -42,7 +45,7 @@ jobs:
           # Copy necessary files
           cp -f ./package*.json scripts/
           cp -rf ./server/ scripts/server
-          cp -rf ./client scripts/client
+          cp -rf ./react-client/dist scripts/client
           # Build the Docker image
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./scripts/.
           # Push the Docker image to ECR
