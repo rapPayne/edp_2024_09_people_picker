@@ -1,11 +1,26 @@
 import express from 'express';
 import cors from 'cors';
-import { createPerson, deletePerson, getAllPeople, getPerson } from './repository-ddb.js';
+// import { createPerson, deletePerson, getAllPeople, getPerson } from './repository-ddb.js';
+
+console.log(process.env?.NODE_ENV)
+let repository;
+switch (process.env?.NODE_ENV) {
+  case "development":
+    repository = await import('./repository.js');
+    break;
+  case "production":
+    repository = await import('./repository-ddb.js');
+    break;
+  default:
+    repository = await import('./repository-ddb.js');
+}
+let { createPerson, deletePerson, getAllPeople, getPerson } = repository;
 
 const app = express();
 const port = 3001;
 
 app.use(cors());
+
 
 // Read all the people
 app.get('/api/people', async (req, res) => {
