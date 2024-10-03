@@ -85,6 +85,7 @@ export function PeoplePicker() {
   function deferPerson() {
     if (chosenPerson) {
       setDeferredPeople([...deferredPeople, chosenPerson]);
+      setChosenPeople(chosenPeople.filter(p => p !== chosenPerson));
       setChosenPerson(null);
     }
   }
