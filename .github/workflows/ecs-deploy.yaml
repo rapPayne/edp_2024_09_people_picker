@@ -20,7 +20,7 @@ jobs:
           node-version: '20'  # Use the Node.js version your project requires
 
       - name: Install NPM dependencies
-        run: cd react-client && npm install
+        run: cp -rf ./assets/ react-client/src && cd react-client && npm install
       
       - name: Build
         run: cd react-client && npm run build
@@ -45,7 +45,7 @@ jobs:
           # Copy necessary files
           cp -f ./package*.json scripts/
           cp -rf ./server/ scripts/server
-          cp -rf ./assets/ scripts/assets
+          # cp -rf ./assets/ scripts/assets
           cp -rf ./react-client/dist scripts/client
           # Build the Docker image
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./scripts/.
