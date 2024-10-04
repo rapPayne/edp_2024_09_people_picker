@@ -20,7 +20,7 @@ jobs:
           node-version: '20'  # Use the Node.js version your project requires
 
       - name: Install NPM dependencies
-        run: cp -rf ./assets/ react-client/src && cd react-client && npm install
+        run: cd react-client && npm install
       
       - name: Build
         run: cd react-client && npm run build
