@@ -3,9 +3,10 @@ import { Person } from "./Person"
 import './PeoplePicker.css'
 
 export function PeoplePicker() {
-  const [chosenPerson, setChosenPerson] = useState();
+  const [chosenPerson, setChosenPerson] = useState(null);
   const [unchosenPeople, setUnchosenPeople] = useState([]);
   const [chosenPeople, setChosenPeople] = useState([]);
+  const [deferredPeople, setDeferredPeople] = useState([]);
 
   useEffect(() => {
     fetchPeople();
@@ -19,6 +20,7 @@ export function PeoplePicker() {
       .then(ppl => {
         setUnchosenPeople(ppl);
         setChosenPeople([]);
+        setDeferredPeople([]);
         setChosenPerson(null);
       });
   }, []);
@@ -31,7 +33,8 @@ export function PeoplePicker() {
 
       <div className="buttonRow">
         <button onClick={() => chooseRandomPerson()}>Choose</button>
-        <button className="link" onClick={() => fetchPeople()}>Reset</button>
+        <button onClick={() => fetchPeople()}>Reset</button>
+        {chosenPeople && <button onClick={deferPerson}>Defer</button>}
       </div>
 
       <section className="chosenPerson">
@@ -50,20 +53,42 @@ export function PeoplePicker() {
 
       <h2>Already chosen People</h2>
       <section className="chosenPeople">
-        {chosenPeople.map(p => <Person person={p} key={p.id} />)}
+        {chosenPeople.map(p => p && p.id ? <Person person={p} key={p.id} /> : null)}
+      </section>
+
+      <hr />
+
+      <h2>Deferred People</h2>
+      <section className="deferredPeople">
+        {deferredPeople.map(p => p && p.id ? <Person person={p} key={p.id} /> : null)}
       </section>
     </div>
-  )
+  );
 
   function chooseRandomPerson() {
-    if (unchosenPeople.length === 0) {
+    if (unchosenPeople.length === 0 && deferredPeople.length === 0) {
       fetchPeople();
       return;
     }
-    let person = unchosenPeople[Math.floor(Math.random() * unchosenPeople.length)];
+    let person;
+    if (unchosenPeople.length > 0) {
+      person = unchosenPeople[Math.floor(Math.random() * unchosenPeople.length)];
+      setUnchosenPeople(unchosenPeople.filter(p => p !== person));
+    } else {
+      person = deferredPeople[Math.floor(Math.random() * deferredPeople.length)];
+      setDeferredPeople(deferredPeople.filter(p => p !== person));
+    }
     setChosenPerson(person);
-    setUnchosenPeople(unchosenPeople.filter(p => p !== person));
     setChosenPeople([...chosenPeople, person])
   }
 
+  function deferPerson() {
+    if (chosenPerson) {
+      setDeferredPeople([...deferredPeople, chosenPerson]);
+      setChosenPeople(chosenPeople.filter(p => p !== chosenPerson));
+      setChosenPerson(null);
+    }
+  }
 }
+
+

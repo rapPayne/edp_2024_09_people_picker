@@ -1,7 +1,8 @@
 .PeoplePicker {
 
   .chosenPeople,
-  .unchosenPeople {
+  .unchosenPeople,
+  .deferredPeople {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 10px;
@@ -14,9 +15,25 @@
 
   .buttonRow {
     /* display: flex;
-    justify-content:space-between; */
+    justify-content:space-between;  */
     padding-left: 25px;
     padding-right: 25px;
 
+  }
+
+  .buttonRow button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+  }
+
+  .buttonRow button {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: darkblue;
+    color: white;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 16px;
   }
 }
