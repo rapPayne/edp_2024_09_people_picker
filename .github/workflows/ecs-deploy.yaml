@@ -45,7 +45,7 @@ jobs:
           # Copy necessary files
           cp -f ./package*.json scripts/
           cp -rf ./server/ scripts/server
-          # cp -rf ./assets/ scripts/assets
+          cp -rf ./assets/ scripts/assets
           cp -rf ./react-client/dist scripts/client
           # Build the Docker image
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./scripts/.

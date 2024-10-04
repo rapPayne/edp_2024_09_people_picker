@@ -10,6 +10,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY client/ ./client
 COPY server/ ./server
+COPY assets/ ./assets
 
 RUN npm install
 
