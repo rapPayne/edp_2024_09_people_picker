@@ -1,107 +1,182 @@
 [
   {
     "id": 1,
-    "name": { "first": "Akash", "last": "Mungra" },
+    "name": {
+      "first": "Akash",
+      "last": "Mungra"
+    },
     "cell": "(720) 555-1234",
     "email": "akash.mungra@prodigy.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/akash.png"
+    }
   },
   {
     "id": 2,
-    "name": { "first": "Ben", "last": "Currier" },
+    "name": {
+      "first": "Ben",
+      "last": "Currier"
+    },
     "cell": "(303) 555-5678",
     "email": "benjamin.currier@msn.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/bencurrier.png"
+    }
   },
   {
     "id": 4,
-    "name": { "first": "Connor", "last": "Hehn" },
+    "name": {
+      "first": "Connor",
+      "last": "Hehn"
+    },
     "cell": "(719) 555-3456",
     "email": "connor.hehn@google.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/connor.png"
+    }
   },
   {
     "id": 5,
-    "name": { "first": "Gauri", "last": "Sarin" },
+    "name": {
+      "first": "Gauri",
+      "last": "Sarin"
+    },
     "cell": "(203) 555-7890",
     "email": "gauri.sarin@yahoo.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/gauri.png"
+    }
   },
   {
     "id": 6,
-    "name": { "first": "Jeff", "last": "Capizzi" },
+    "name": {
+      "first": "Jeff",
+      "last": "Capizzi"
+    },
     "cell": "(860) 555-1234",
     "email": "jeffrey.capizzi@aol.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/jeff.png"
+    }
   },
   {
     "id": 7,
-    "name": { "first": "Josh", "last": "Susman" },
+    "name": {
+      "first": "Josh",
+      "last": "Susman"
+    },
     "cell": "(475) 555-5678",
     "email": "joshua.susman@hotmail.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/josh.png"
+    }
   },
   {
     "id": 8,
-    "name": { "first": "Justin", "last": "Yap" },
+    "name": {
+      "first": "Justin",
+      "last": "Yap"
+    },
     "cell": "(959) 555-9012",
     "email": "justin.yap@msn.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/justin.png"
+    }
   },
   {
     "id": 9,
-    "name": { "first": "Om", "last": "Sahoo" },
+    "name": {
+      "first": "Om",
+      "last": "Sahoo"
+    },
     "cell": "(202) 555-3456",
     "email": "omprakash.sahoo@google.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/om.png"
+    }
   },
   {
     "id": 10,
-    "name": { "first": "Thahera", "last": "Shafi" },
+    "name": {
+      "first": "Thahera",
+      "last": "Shafi"
+    },
     "cell": "(302) 555-7890",
     "email": "thahera.shafi@yahoo.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/t.png"
+    }
   },
   {
     "id": 11,
-    "name": { "first": "Tim", "last": "Lipps" },
+    "name": {
+      "first": "Tim",
+      "last": "Lipps"
+    },
     "cell": "(205) 555-1234",
     "email": "tim.lipps@aol.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/tim.png"
+    }
   },
   {
     "id": 12,
-    "name": { "first": "Usi", "last": "Jalil" },
+    "name": {
+      "first": "Usi",
+      "last": "Jalil"
+    },
     "cell": "(251) 555-5678",
     "email": "usman.jalil@hotmail.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/usi.png"
+    }
   },
   {
     "id": 13,
-    "name": { "first": "Victoria", "last": "Mertens" },
+    "name": {
+      "first": "Victoria",
+      "last": "Mertens"
+    },
     "cell": "(256) 555-9012",
     "email": "victoria.mertens@msn.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/victoria.png"
+    }
   },
   {
     "id": 14,
-    "name": { "first": "Vin", "last": "Xie" },
+    "name": {
+      "first": "Vin",
+      "last": "Xie"
+    },
     "cell": "(334) 555-3456",
     "email": "vincent.xie@google.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/vin.png"
+    }
   },
   {
     "id": 3,
-    "name": { "first": "Ben", "last": "Nguyen" },
+    "name": {
+      "first": "Ben",
+      "last": "Nguyen"
+    },
     "cell": "(970) 555-9012",
     "email": "benjamin.nguyen@aol.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/ben10.png"
+    }
   },
   {
     "id": 15,
-    "name": { "first": "Zak", "last": "Abdi" },
+    "name": {
+      "first": "Zak",
+      "last": "Abdi"
+    },
     "cell": "(938) 555-7890",
     "email": "zakariya.abdi@yahoo.com",
-    "picture": { "large": "/images/profile_pics/temp.png" }
+    "picture": {
+      "large": "/assets/images/people/zak.png"
+    }
   }
 ]

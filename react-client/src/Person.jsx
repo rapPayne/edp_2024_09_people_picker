@@ -1,17 +1,15 @@
 /* eslint-disable react/prop-types */
 import "./Person.css"
+import { useProfileImage } from './hooks/useProfileImage';
 
 export const Person = ({ person }) => {
+  const { imageSource } = useProfileImage(person?.picture?.large, "/assets/images/people/Placeholder.png")
   return (
     <div id="person-wrapper">
       <div id="card-style"></div>
-      <img id="img-style" src="https://t4.ftcdn.net/jpg/00/65/77/27/360_F_65772719_A1UV5kLi5nCEWI0BNLLiFaBPEkUbv5Fv.jpg" />
+      <img id="img-style" src={imageSource} />
       <h1 className="person-name">{person?.name?.first} {person?.name?.last}</h1>
       <p id="person-email">{person?.email}</p>
     </div>
   )
 }
-
-
-
-/* font smaller, size image, shadow, no border, width 300px */

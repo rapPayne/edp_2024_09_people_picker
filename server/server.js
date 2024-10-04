@@ -21,7 +21,6 @@ const port = 3001;
 
 app.use(cors());
 
-
 // Read all the people
 app.get('/api/people', async (req, res) => {
   try {
@@ -38,7 +37,6 @@ app.get('/api/people/:id', async (req, res) => {
   const thePerson = await getPerson(+personId);
   res.send(thePerson);
 })
-//console.log(getPerson(5));
 
 // Add a new person
 //createPerson({ name: { first: "Starr", last: "Ekdahl" }, cell: "808-555-2234" })
@@ -58,6 +56,7 @@ app.delete('/api/people/:id', async (req, res) => {
   }
 });
 
+app.use('/assets', express.static('assets'));
 app.use(express.static('client'));
 
 app.listen(port, () => console.log(`Server started on port ${port}`));
