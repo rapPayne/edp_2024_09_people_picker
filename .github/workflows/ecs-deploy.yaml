@@ -1,9 +1,6 @@
-# .github/workflows/ecs-deploy.yml
-
 name: ECS Deploy1
 
 on:
-  # workflow_dispatch:
   push:
     branches:
       - main  # Change this if you want to trigger on different branches
@@ -74,3 +71,38 @@ jobs:
 
           # Update the ECS service to use the new task definition
           aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --task-definition $NEW_TASK_DEF_ARN
+
+      # New steps to output the public IP of the deployed ECS task
+      - name: Wait for service to stabilize
+        env:
+          CLUSTER_NAME: edp-cluster
+          SERVICE_NAME: edp-service
+        run: |
+          echo "Waiting for the ECS service to stabilize..."
+          aws ecs wait services-stable --cluster $CLUSTER_NAME --services $SERVICE_NAME
+
+      - name: Get public IP of the ECS task
+        env:
+          CLUSTER_NAME: edp-cluster
+          SERVICE_NAME: edp-service
+        run: |
+          echo "Fetching the public IP of the ECS task..."
+          # List tasks in the service
+          TASK_ARN=$(aws ecs list-tasks --cluster $CLUSTER_NAME --service-name $SERVICE_NAME --query 'taskArns[0]' --output text)
+          echo "Task ARN: $TASK_ARN"
+
+          # Describe the task to get the public IP directly
+          PUBLIC_IP=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $TASK_ARN --query 'tasks[0].attachments[0].details[?name==`publicIPv4Address`].value' --output text)
+
+          if [ "$PUBLIC_IP" = "None" ] || [ -z "$PUBLIC_IP" ]; then
+            echo "Public IP not found in task details. Trying via ENI..."
+
+            # Get the ENI ID
+            ENI_ID=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $TASK_ARN --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' --output text)
+            echo "ENI ID: $ENI_ID"
+
+            # Get the public IP address from the ENI
+            PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
+          fi
+
+          echo "Public IP: $PUBLIC_IP"
