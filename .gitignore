@@ -5,3 +5,4 @@
 /scripts/package*.json
 /scripts/people.json
 /scripts/repository.js
+/data/db
