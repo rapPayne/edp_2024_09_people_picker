@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { MongoClient } from 'mongodb';
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'; //to load our .env file
 
 // Load environment variables from .env file
 dotenv.config();
@@ -27,11 +27,11 @@ app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
 
 // MongoDB connection settings
-const url = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const dbName = 'peoplePickerDB';
-let db;
+const url = process.env.MONGODB_URI || 'mongodb://localhost:27017'; // our mongodb url specificly from our .env file
+const dbName = 'peoplePickerDB'; //assigning our new database as dbName
+let db; //this will hold the database connection object
 
-// Connect to MongoDB
+// Connect to new mongo instance, connects to the server and ssignd the instance of the DB to the db variable, error if it doesnt work
 const connectToDatabase = async () => {
   const client = new MongoClient(url);
   try {
@@ -78,7 +78,8 @@ app.delete('/api/people/:id', async (req, res) => {
   }
 });
 
-// API endpoint to get people data from MongoDB
+// gets all records form people in our new mongoDB database by using the find method. converts it to an array, and sends it as a json response. 
+//logs a 500 error if it doesnt work. 
 app.get('/api/people/mongodb', async (req, res) => {
   try {
     const people = await db.collection('people').find({}).toArray();
@@ -92,7 +93,7 @@ app.get('/api/people/mongodb', async (req, res) => {
 app.use('/assets', express.static('assets'));
 app.use(express.static('client'));
 
-// Start the server
+// establishes a connection to MongoDB when the server is up
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
   connectToDatabase();
