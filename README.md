@@ -1,7 +1,7 @@
 # The People Picker
 People Picker is a web application built using React that allows users to randomly select and categorize people into different groups. This can be useful for various purposes such as team assignments, random draws, or any scenario where random selection is needed. 
 
-## Installations
+## Installation
 1. Fork the repository
 2. Clone the repository
 3. Install dependencies
