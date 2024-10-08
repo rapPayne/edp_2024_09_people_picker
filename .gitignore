@@ -6,3 +6,6 @@
 /scripts/people.json
 /scripts/repository.js
 /data/db
+
+# Mac-specific files
+.DS_Store
