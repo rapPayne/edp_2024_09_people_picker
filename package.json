@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node --watch --env-file=server/.env server/server.js",
+    "start-db": "mongod --dbpath ./data/db",
+    "seed-db": "node server/scripts/seedPeople.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Awesome EDP cohort",
@@ -14,6 +16,7 @@
     "@aws-sdk/client-dynamodb": "^3.658.1",
     "@aws-sdk/lib-dynamodb": "^3.658.1",
     "cors": "^2.8.5",
-    "express": "^4.21.0"
+    "express": "^4.21.0",
+    "mongodb": "^6.9.0"
   }
 }
